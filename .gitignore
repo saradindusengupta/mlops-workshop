@@ -57,3 +57,18 @@ htmlcov/
 mlops-demo/data/raw/*.csv
 
 mlops-demo/condaenv.9t5oxrdi.requirements.txt
+
+
+# Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.ipynb_checkpoints
+.cache/
+celerybeat-schedule
+instance/
+.webassets-cache/
+.scrapy/
+.mypy_cache/
