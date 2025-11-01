@@ -63,7 +63,7 @@ mlops-demo/
 │       └── ci.yml            # CI/CD pipeline
 ├── Dockerfile                # Container definition
 ├── requirements.txt          # Python dependencies
-├── .gitignore             
+├── .gitignore           
 └── README.md
 ```
 
@@ -299,8 +299,4 @@ This is a learning project! Feel free to:
 
 ## 📄 License
 
-MIT License - Free to use for education and commercial purposes.
-
----
-
-**Built with ❤️ for MLOps learners**
+GNU License - Free to use for education and commercial purposes.
