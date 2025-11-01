@@ -16,7 +16,7 @@ import mlflow
 import mlflow.sklearn
 
 
-def load_data(data_path: str = "data/raw/iris.csv"):
+def load_data(data_path: str = "mlops-demo/data/raw/iris.csv"):
     """Load the Iris dataset from CSV."""
     print(f"📂 Loading data from {data_path}...")
     df = pd.read_csv(data_path)

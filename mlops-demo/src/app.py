@@ -15,6 +15,11 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 import logging
+import sys
+from pathlib import Path
+
+# Add parent directory to path
+sys.path.insert(0, str(Path(__file__).parent))
 
 from infer_schema import (
     InferenceRequest,

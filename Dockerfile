@@ -18,8 +18,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Copy application code
-COPY data/ data/
-COPY src/ src/
+COPY mlops-demo/data/ data/
+COPY mlops-demo/src/ src/
 
 # Train the model (this creates mlruns/ directory)
 RUN python src/train.py

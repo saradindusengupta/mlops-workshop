@@ -1,0 +1,11 @@
+# CODEOWNERS
+# Documentation: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# Lines are evaluated top-to-bottom; the last matching pattern takes precedence.
+
+# Default owner for everything in the repo
+* @saradindusengupta
+
+# Example (uncomment and adjust as needed)
+# notebooks/**              @saradindusengupta
+# mlops-demo/src/**         @saradindusengupta
+# .github/**                @saradindusengupta
