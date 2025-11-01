@@ -41,12 +41,12 @@ echo -e "${GREEN}✅ Dependencies installed${NC}"
 
 echo ""
 echo -e "${BLUE}🧪 Step 3: Training model with MLflow${NC}"
-python src/train.py
+python mlops-demo/src/train.py
 echo -e "${GREEN}✅ Model trained successfully${NC}"
 
 echo ""
 echo -e "${BLUE}🧪 Step 4: Running tests${NC}"
-pytest tests/ -v
+pytest mlops-demo/tests/ -v
 echo -e "${GREEN}✅ Tests passed${NC}"
 
 echo ""
