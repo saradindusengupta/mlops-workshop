@@ -55,3 +55,5 @@ htmlcov/
 
 # Data
 mlops-demo/data/raw/*.csv
+
+mlops-demo/condaenv.9t5oxrdi.requirements.txt
