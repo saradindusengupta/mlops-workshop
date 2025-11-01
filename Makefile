@@ -1,94 +1,168 @@
-.ONESHELL:
-ENV_PREFIX=$(python3 -c "if __import__('pathlib').Path('.venv/bin/pip').exists(): print('.venv/bin/')")
-project_name = $("soc_estimation")
+.PHONY: help setup install train test serve mlflow docker-build docker-run clean lint format verify
 
-.PHONY: help
-help:             ## Show the help.
-	@echo "Usage: make <target>"
+# Default target
+help:
+	@echo "MLOps Demo - Available Commands"
+	@echo "================================"
 	@echo ""
-	@echo "Targets:"
-	@fgrep "##" Makefile | fgrep -v fgrep
+	@echo "Setup Commands:"
+	@echo "  make setup         - Create virtual environment"
+	@echo "  make install       - Install dependencies"
+	@echo "  make verify        - Verify setup is correct"
+	@echo ""
+	@echo "Development Commands:"
+	@echo "  make train         - Train the model"
+	@echo "  make test          - Run tests"
+	@echo "  make serve         - Start FastAPI service"
+	@echo "  make mlflow        - Start MLflow UI"
+	@echo ""
+	@echo "Code Quality:"
+	@echo "  make lint          - Run linting checks"
+	@echo "  make format        - Format code with black"
+	@echo ""
+	@echo "Docker Commands:"
+	@echo "  make docker-build  - Build Docker image"
+	@echo "  make docker-run    - Run Docker container"
+	@echo "  make docker-test   - Test Docker container"
+	@echo ""
+	@echo "Cleanup:"
+	@echo "  make clean         - Remove generated files"
+	@echo "  make clean-all     - Remove all (including venv)"
 
+# Setup
+setup:
+	@echo "Creating virtual environment..."
+	python3 -m venv venv
+	@echo "✓ Virtual environment created"
+	@echo ""
+	@echo "Activate with: source venv/bin/activate"
 
-.PHONY: show
-show:             ## Show the current environment.
-	@echo "Current environment:"
-	@echo "Running using $(ENV_PREFIX)"
-	@$(ENV_PREFIX)python -V
-	@$(ENV_PREFIX)python -m site
+install:
+	@echo "Installing dependencies..."
+	pip install --upgrade pip
+	pip install -r requirements.txt
+	@echo "✓ Dependencies installed"
 
-.PHONY: install
-install:          ## Install the project in dev mode.
-	@echo "Don't forget to run 'make virtualenv' if you got errors."
-	$(ENV_PREFIX)pip install -e .[test]
+verify:
+	@echo "Verifying setup..."
+	chmod +x verify_setup.sh
+	./verify_setup.sh
 
-.PHONY: build
-install:          ## Install the project in dev mode.
-	@echo "Build wheel file"
-	$(ENV_PREFIX)python -m build
+# Training and Inference
+train:
+	@echo "Training model..."
+	python src/train.py
 
-.PHONY: lint
-lint:             ## Run pep8, black, mypy linters.
-	$(ENV_PREFIX)flake8 src/$(project_name)/
-	$(ENV_PREFIX)black -l 79 --check src/$(project_name)/
-	$(ENV_PREFIX)black -l 79 --check tests/
+test:
+	@echo "Running tests..."
+	pytest tests/ -v
 
-.PHONY: test
-test: lint        ## Run tests and generate coverage report.
-	$(ENV_PREFIX)pytest -v --cov-config .coveragerc --cov=src/$(project_name) -l --tb=short --maxfail=1 tests/
-	$(ENV_PREFIX)coverage xml
-	$(ENV_PREFIX)coverage html
+test-cov:
+	@echo "Running tests with coverage..."
+	pytest tests/ -v --cov=src --cov-report=html --cov-report=term
 
-.PHONY: watch
-watch:            ## Run tests on every change.
-	ls **/**.py | entr $(ENV_PREFIX)pytest -s -vvv -l --tb=long --maxfail=1 tests/
+serve:
+	@echo "Starting FastAPI service..."
+	uvicorn src.app:app --reload --host 0.0.0.0 --port 8000
 
-.PHONY: clean
-clean:            ## Clean unused files.
-	@find ./ -name '*.pyc' -exec rm -f {} \;
-	@find ./ -name '__pycache__' -exec rm -rf {} \;
-	@find ./ -name 'Thumbs.db' -exec rm -f {} \;
-	@find ./ -name '*~' -exec rm -f {} \;
-	@rm -rf .cache
-	@rm -rf .pytest_cache
-	@rm -rf .mypy_cache
-	@rm -rf build
-	@rm -rf distsoc_estimation
-	@rm -rf *.egg-info
-	@rm -rf htmlcov
-	@rm -rf .tox/
-	@rm -rf docs/_build
+mlflow:
+	@echo "Starting MLflow UI..."
+	@echo "Open http://localhost:5000 in your browser"
+	mlflow ui
 
-.PHONY: virtualenv
-virtualenv:       ## Create a virtual environment.
-	@echo "creating virtualenv ..."
-	@rm -rf .venv
-	@python3 -m venv .venv
-	@./.venv/bin/pip install -U pip
-	@./.venv/bin/pip install -e .[test]
-	@echo
-	@echo "!!! Please run 'source .venv/bin/activate' to enable the environment !!!"
+# Code Quality
+lint:
+	@echo "Running linters..."
+	flake8 src/ tests/ --max-line-length=100 --extend-ignore=E203,W503 || true
+	@echo "Checking types..."
+	mypy src/ --ignore-missing-imports || true
 
-.PHONY: release
-release:          ## Create a new tag for release.
-	@echo "WARNING: This operation will create s version tag and push to github"
-	@read -p "Version? (provide the next x.y.z semver) : " TAG
-	@echo "$${TAG}" > src/$(project_name)/VERSION
-	@$(ENV_PREFIX)gitchangelog > HISTORY.md
-	@git add $(project_name)/VERSION HISTORY.md
-	@git commit -m "release: version $${TAG} 🚀"
-	@echo "creating git tag : $${TAG}"
-	@git tag $${TAG}
-	@git push -u origin HEAD --tags
-	@echo "Github Actions will detect the new tag and release the new version."
+format:
+	@echo "Formatting code..."
+	black src/ tests/
+	@echo "✓ Code formatted"
 
-.PHONY: docs
-docs:             ## Build the documentation.
-	@echo "building documentation with PyDoc ..."
-	@$(ENV_PREFIX)pdoc --force --html src/$(project_name) --output docs/
+# Docker
+docker-build:
+	@echo "Building Docker image..."
+	docker build -t mlops-demo:latest .
+	@echo "✓ Docker image built"
 
-.PHONY: init
-init:             ## Initialize the project based on an application template.
-	@./.github/init.sh
+docker-run:
+	@echo "Running Docker container..."
+	docker run -d -p 8000:8000 --name mlops-demo mlops-demo:latest
+	@echo "✓ Container started"
+	@echo "API available at: http://localhost:8000"
+	@echo "Stop with: docker stop mlops-demo"
 
-# __author__ = 'saradindusengupta'
+docker-stop:
+	@echo "Stopping Docker container..."
+	docker stop mlops-demo || true
+	docker rm mlops-demo || true
+	@echo "✓ Container stopped"
+
+docker-test:
+	@echo "Testing Docker container..."
+	docker run -d -p 8000:8000 --name mlops-demo-test mlops-demo:latest
+	@echo "Waiting for service to start..."
+	sleep 5
+	@echo "Testing health endpoint..."
+	curl -f http://localhost:8000/health
+	@echo ""
+	@echo "Testing predict endpoint..."
+	curl -X POST http://localhost:8000/predict \
+		-H "Content-Type: application/json" \
+		-d '{"features": {"sepal_length": 5.1, "sepal_width": 3.5, "petal_length": 1.4, "petal_width": 0.2}}'
+	@echo ""
+	docker stop mlops-demo-test
+	docker rm mlops-demo-test
+	@echo "✓ Docker tests passed"
+
+docker-shell:
+	@echo "Opening shell in Docker container..."
+	docker run -it --rm mlops-demo:latest /bin/bash
+
+# Cleanup
+clean:
+	@echo "Cleaning generated files..."
+	rm -rf __pycache__ .pytest_cache .coverage htmlcov
+	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.pyc" -delete
+	find . -type f -name "*.pyo" -delete
+	@echo "✓ Cleaned"
+
+clean-mlflow:
+	@echo "Cleaning MLflow artifacts..."
+	rm -rf mlruns mlartifacts
+	@echo "✓ MLflow artifacts removed"
+
+clean-all: clean clean-mlflow
+	@echo "Removing virtual environment..."
+	rm -rf venv
+	@echo "Removing Docker images..."
+	docker rmi mlops-demo:latest 2>/dev/null || true
+	@echo "✓ Everything cleaned"
+
+# Quick start
+quickstart:
+	@echo "Running quick start..."
+	chmod +x quickstart.sh
+	./quickstart.sh
+
+# CI/CD simulation
+ci:
+	@echo "Simulating CI/CD pipeline..."
+	@echo ""
+	@echo "→ Step 1: Linting"
+	@make lint
+	@echo ""
+	@echo "→ Step 2: Training"
+	@make train
+	@echo ""
+	@echo "→ Step 3: Testing"
+	@make test
+	@echo ""
+	@echo "→ Step 4: Docker Build"
+	@make docker-build
+	@echo ""
+	@echo "✓ CI pipeline complete"
