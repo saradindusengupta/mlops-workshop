@@ -33,7 +33,7 @@ jobs:
     
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       with:
         name: test-results
         path: |
@@ -111,7 +111,7 @@ jobs:
         docker save mlops-demo:latest | gzip > mlops-demo.tar.gz
     
     - name: Upload Docker image artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       with:
         name: docker-image
         path: mlops-demo.tar.gz
